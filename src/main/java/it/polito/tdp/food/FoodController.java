@@ -6,7 +6,12 @@ package it.polito.tdp.food;
 
 import java.net.URL;
 import java.util.ResourceBundle;
+
+import org.jgrapht.Graphs;
+import org.jgrapht.graph.DefaultWeightedEdge;
+
 import it.polito.tdp.food.model.Model;
+import it.polito.tdp.food.model.porzioneAdiacente;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
@@ -40,7 +45,7 @@ public class FoodController {
     private Button btnCammino; // Value injected by FXMLLoader
 
     @FXML // fx:id="boxPorzioni"
-    private ComboBox<?> boxPorzioni; // Value injected by FXMLLoader
+    private ComboBox<String> boxPorzioni; // Value injected by FXMLLoader
 
     @FXML // fx:id="txtResult"
     private TextArea txtResult; // Value injected by FXMLLoader
@@ -48,20 +53,87 @@ public class FoodController {
     @FXML
     void doCammino(ActionEvent event) {
     	txtResult.clear();
+
+    	txtResult.clear();
     	txtResult.appendText("Cerco cammino peso massimo...");
+    	
+    	
+    	Integer k;
+    	if(txtPassi.getText().compareTo("") == 0) {
+    		txtResult.setText("inserisci un numero di passi");
+    		return;
+    	}
+    	try {
+    		k =Integer.parseInt(txtPassi.getText());
+    	} catch (NumberFormatException n) {
+    		txtResult.setText("il numero di passi per il cammino deve essere composto da cifre");
+    		return;
+    	}
+    	
+    	if(boxPorzioni.getValue() == null) {
+    		txtResult.setText("Selezione un tipo di porzione");
+    		return;
+    	}
+    	
+    	txtResult.clear();
+    	
+
+    	
+    	for(String s : model.init(k, boxPorzioni.getValue()))
+    		txtResult.appendText(s + '\n');
+    	if(model.getPesoCammino() == 0) {
+    		txtResult.appendText("Non ho trovato un cammino di lunghezza N\n");
+    	} else {
+    		txtResult.appendText(model.getPesoCammino() + "");
+    	}
+    	model.cancelPeso();
+    	
+    	
+    	
+    	
     }
 
     @FXML
     void doCorrelate(ActionEvent event) {
     	txtResult.clear();
     	txtResult.appendText("Cerco porzioni correlate...");
-    	
+    	txtResult.clear();
+
+    	if(boxPorzioni.getValue() == null) {
+    		txtResult.setText("Selezione un tipo di porzione");
+    		return;
+    	}
+
+    	for(porzioneAdiacente p : model.getCorrelate(boxPorzioni.getValue())) {
+    		txtResult.appendText(p.toString());
+    	}
+
+
     }
 
     @FXML
     void doCreaGrafo(ActionEvent event) {
+    	
+    	boxPorzioni.getItems().clear();
+
+    	double k = 0;
+    	if(txtCalorie.getText().compareTo("") == 0) {
+    		txtResult.setText("inserisci un numero di calorie");
+    		return;
+    	}
+    	try {
+    		k =Double.parseDouble(txtCalorie.getText());
+    	} catch (NumberFormatException n) {
+    		txtResult.setText("il numero di calorie deve essere indicato con delle cifre");
+    		return;
+    	}
+    	
     	txtResult.clear();
     	txtResult.appendText("Creazione grafo...");
+    	model.creaGrafo(k);
+    	boxPorzioni.getItems().addAll(model.getPorzioni());
+    	txtResult.setText("Grafo creato");
+    	
     	
     }
 
@@ -79,5 +151,6 @@ public class FoodController {
     
     public void setModel(Model model) {
     	this.model = model;
+
     }
 }
